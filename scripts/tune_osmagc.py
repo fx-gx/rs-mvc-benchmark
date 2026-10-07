@@ -57,6 +57,7 @@ def _run_one(task: dict) -> dict:
     from common.data import load_dataset
     from common.metrics import evaluate
     from methods.osmagc_central import DEFAULT_PARAMS, run_osmagc_central
+    from osmagc.core.updates import COL_CHUNK
 
     ds = load_dataset(task["dataset"])
     base = DEFAULT_PARAMS[ds.name]
@@ -71,6 +72,9 @@ def _run_one(task: dict) -> dict:
         mask = gt > 0
         m = evaluate(gt[mask], labels[mask])
         return {**task, "status": "ok", "runtime_s": time.time() - t0,
+                # 协议指纹：分块大小会改变浮点舍入、进而改变结果（实测 ACC 差 0.5 点），
+                # 所以它和 n_init 一样必须逐条记录，否则半年后没人知道数字怎么来的。
+                "col_chunk": int(COL_CHUNK),
                 **{k: float(v) for k, v in m.items()}}
     except Exception as exc:                                  # noqa: BLE001
         return {**task, "status": "error", "runtime_s": time.time() - t0,
@@ -138,6 +142,7 @@ def main() -> int:
 
     from common.data import load_dataset
     from methods.osmagc_central import DEFAULT_PARAMS
+    from osmagc.core.updates import COL_CHUNK
 
     ds = load_dataset(args.dataset)
     base = DEFAULT_PARAMS[ds.name]
@@ -161,7 +166,10 @@ def main() -> int:
                 continue
             prev.append(r)
             if r.get("status") == "ok":
-                done_keys.add((r["lam"], r["gamma"], tuple(r["num_pixel"]), r.get("stage")))
+                # col_chunk 必须进 key：换个分块大小结果就变（实测 ACC 差 0.5 点），
+                # 不带上它会把"用别的协议算出来的记录"当成已完成而错误跳过。
+                done_keys.add((r["lam"], r["gamma"], tuple(r["num_pixel"]),
+                               r.get("stage"), r.get("col_chunk")))
         print(f"\n[断点续跑] journal 已有 {len(prev)} 条，其中成功 {len(done_keys)} 条将被跳过")
 
     # ---------------- Stage A：λ × γ ----------------
@@ -171,7 +179,8 @@ def main() -> int:
         for lam in args.lambda_grid for gam in args.gamma_grid
     ]
     tasks = [t for t in all_a
-             if (t["lam"], t["gamma"], tuple(t["num_pixel"]), "A") not in done_keys]
+             if (t["lam"], t["gamma"], tuple(t["num_pixel"]), "A",
+                 int(COL_CHUNK)) not in done_keys]
     for t in tasks:
         t["n_init"] = args.n_init
     est = len(tasks) * (55 + 9 * args.n_init) / 60
