@@ -58,7 +58,15 @@ class OSMAGCParams:
 DEFAULT_PARAMS: dict[str, OSMAGCParams] = {
     # λ/γ 取自 OSMAGC 项目实测最优（`scripts/run_phase_a.py: BEST_LG`）
     "MUUFL":    OSMAGCParams(num_pixel=(50, 100),       lam=1.0,  gamma=1.0),
-    "Augsburg": OSMAGCParams(num_pixel=(200, 200, 200), lam=1e-3, gamma=1e-2),
+    # Augsburg：2026-10-07 本平台实测调参结果（results/tuning_osmagc_Augsburg.json）。
+    # 5×7 的 λ×γ 网格 + 4 组超像素扫描，Stage C 用 n_init=10 复核。
+    #   最优 sp=[200,200,200] λ=1 γ=10：ACC=0.5021 NMI=0.4250 ARI=0.3132 Purity=0.7022
+    #   原论文默认 λ=1e-3 γ=1e-2：ACC=0.4789 → 提升 +0.0232
+    # ⚠️ 注意：Augsburg 是 OSMAGC 论文自己的主数据集、γ=1e-2 是它唯一的官方默认值，
+    # 但**在这上面照样能调出 2.3 个点** —— "默认超参只对原论文数据集有效"这一结论
+    # 在核心数据集上也成立，不是 Salinas 的特例。
+    # 协议指纹：BLAS 线程 4、COL_CHUNK 25000、复核 n_init=10。
+    "Augsburg": OSMAGCParams(num_pixel=(200, 200, 200), lam=1.0,  gamma=10.0),
     "Berlin":   OSMAGCParams(num_pixel=(100, 100),      lam=1e-3, gamma=10.0),
     # Trento / Salinas 不是 OSMAGC 论文的数据集，没有官方最优值。
     # 按论文 4.1 的超像素范围 100~300 取中位起步，λ/γ 取官方代码里 MUUFL 那组
