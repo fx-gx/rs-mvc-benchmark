@@ -125,9 +125,13 @@ def main() -> int:
     ap.add_argument("--gamma-grid", nargs="+", type=float, default=GAMMA_GRID)
     ap.add_argument("--skip-stage-b", action="store_true")
     ap.add_argument("--n-init", type=int, default=3,
-                    help="扫描阶段 k-means 的初始化次数。降到 3 可提速近一倍"
-                         "（所有配置统一用同一值，故配置间比较仍公平）；"
-                         "最优配置之后会用 n_init=10 正式重跑")
+                    help="扫描阶段（Stage A/B）k-means 的初始化次数。"
+                         "所有配置统一用同一值，故配置间比较仍公平；"
+                         "**注意它同时作用于 Stage A 和 Stage B**")
+    ap.add_argument("--confirm-n-init", type=int, default=10,
+                    help="Stage C：用该 n_init 复核扫描出的最优配置（默认 10，"
+                         "即正式读出协议），报出去的最终数字以它为准。"
+                         "设为与 --n-init 相同则跳过复核")
     ap.add_argument("--no-resume", action="store_true",
                     help="忽略已有 journal，从头跑")
     args = ap.parse_args()
@@ -206,9 +210,13 @@ def main() -> int:
     res_b = []
     if not args.skip_stage_b:
         cands = SP_CANDIDATES.get(ds.name, [tuple(base.num_pixel)])
+        # ⚠️ 必须显式带上 n_init：`_run_one` 是 `task.get("n_init", 10)`，
+        # 漏掉这个键会让 Stage B 静默用 10，与 Stage A 的 --n-init 不一致，
+        # 使 λ×γ 排名表混用两种读出协议（2026-10-07 实测踩过）。
         tasks_b = [
             dict(dataset=ds.name, lam=best_lam, gamma=best_gam,
-                 num_pixel=list(sp), seed=args.seed, stage="B")
+                 num_pixel=list(sp), seed=args.seed, stage="B",
+                 n_init=args.n_init)
             for sp in cands
         ]
         print(f"\n[Stage B] 超像素数扫描（固定 λ={best_lam:g}, γ={best_gam:g}）："
@@ -223,7 +231,33 @@ def main() -> int:
             print(f"    {str(r['num_pixel']):>22}{r['ACC']:>9.4f}{r['NMI']:>9.4f}"
                   f"{r['ARI']:>9.4f}{r['Purity']:>9.4f}")
 
+    # ---------------- Stage C：最优配置用正式 n_init 复核 ----------------
+    # 扫描阶段用低 n_init 提速（配置间比较仍公平），但**报出去的最终数字**必须回到
+    # 正式读出协议，否则扫描出的"最优"和复核值对不上。此前这一步只写在 help 里、
+    # main() 中并未实现，导致 Stage B 意外顶替了复核角色。
+    res_c = []
+    scan_ok = [r for r in (res_a + res_b) if r["status"] == "ok"]
+    if scan_ok and args.confirm_n_init != args.n_init:
+        scan_ok.sort(key=lambda r: -r["ACC"])
+        b = scan_ok[0]
+        task_c = dict(dataset=ds.name, lam=b["lam"], gamma=b["gamma"],
+                      num_pixel=list(b["num_pixel"]), seed=args.seed,
+                      stage="C", n_init=args.confirm_n_init)
+        print(f"\n[Stage C] 用 n_init={args.confirm_n_init} 复核扫描最优 "
+              f"(λ={b['lam']:g}, γ={b['gamma']:g}, sp={b['num_pixel']})")
+        t0 = time.time()
+        res_c = run_batch([task_c], args.jobs,
+                          RES / f"tuning_journal_{ds.name}.jsonl")
+        print(f"  完成，耗时 {time.time() - t0:.0f}s")
+        for r in res_c:
+            if r["status"] == "ok":
+                print(f"    扫描值 ACC={b['ACC']:.4f}  →  复核值 ACC={r['ACC']:.4f}"
+                      f"  (差 {r['ACC'] - b['ACC']:+.4f})")
+
     # ---------------- 落盘 ----------------
+    all_res = [r for r in (res_a + res_b + res_c) if r["status"] == "ok"]
+    # 最终值以复核（stage C）为准，没有复核则退回扫描值
+    all_res.sort(key=lambda r: (r.get("stage") != "C", -r["ACC"]))
     all_res = [r for r in (res_a + res_b) if r["status"] == "ok"]
     all_res.sort(key=lambda r: -r["ACC"])
     out = RES / f"tuning_osmagc_{ds.name}.json"

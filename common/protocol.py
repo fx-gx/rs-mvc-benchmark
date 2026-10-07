@@ -19,6 +19,8 @@ from typing import Any
 
 import numpy as np
 
+from .threads import THREADS
+
 RESULTS_DIR = Path(__file__).resolve().parents[1] / "results"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -37,6 +39,10 @@ class RunResult:
     eval_mask: str = "labeled"     # 'labeled'（gt>0）或 'all'
     norm: str = "zscore"
     seed: int = 0
+    # BLAS/OpenMP 线程数。实测同配置换线程数能差 5.9 个 ACC 点，所以它和种子
+    # 一样属于"协议指纹"——不记下来，半年后没人知道表里那个数字是怎么来的。
+    # 全局由 common/threads.py 钉死，这里只做记录。
+    blas_threads: int = -1
 
     # --- 结果 ---
     ACC: float = float("nan")
@@ -55,6 +61,8 @@ class RunResult:
     def __post_init__(self) -> None:
         if not self.timestamp:
             self.timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        if self.blas_threads < 0:
+            self.blas_threads = THREADS
 
     def key(self) -> tuple:
         """去重键：同一条协议只跑一次。"""
