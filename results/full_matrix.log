@@ -1,0 +1,181 @@
+D:\anaconda\Lib\site-packages\joblib\externals\loky\backend\context.py:136: UserWarning: Could not find the number of physical cores for the following reason:
+[WinError 2] 系统找不到指定的文件。
+Returning the number of logical cores instead. You can silence this warning by setting LOKY_MAX_CPU_COUNT to the number of cores you want to use.
+  warnings.warn(
+  File "D:\anaconda\Lib\site-packages\joblib\externals\loky\backend\context.py", line 257, in _count_physical_cores
+    cpu_info = subprocess.run(
+               ^^^^^^^^^^^^^^^
+  File "D:\anaconda\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\anaconda\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "D:\anaconda\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+====================================================================================================
+数据集 Augsburg
+====================================================================================================
+  Augsburg: 332x485 = 161,020 像素 | 3 视图 [HS(180), SAR(4), DSM(1)] | 7 类 | 有标注 78,294 (48.6%)
+
+  --- seed=0 ---
+    Local-only(view,朴素) ACC=0.3760 NMI=0.1813
+    Local-only(view,融合) ACC=0.4574 NMI=0.1600
+    Local-only(region)    ACC=0.2783 NMI=0.1330
+    OSMAGC 集中式         ACC=0.4535 NMI=0.4118  (69s)
+    OSMAGC 联邦化(view)   ACC=0.4535 NMI=0.4118  通信=516.0 MB
+    Fed-MVKM(region 2x2)   ACC=0.5392 NMI=0.2296  (28轮)
+
+  --- seed=1 ---
+    Local-only(view,朴素) ACC=0.3900 NMI=0.2062
+    Local-only(view,融合) ACC=0.3976 NMI=0.1776
+    Local-only(region)    ACC=0.3329 NMI=0.2037
+    OSMAGC 集中式         ACC=0.4566 NMI=0.4124  (65s)
+    OSMAGC 联邦化(view)   ACC=0.4566 NMI=0.4124  通信=516.0 MB
+    Fed-MVKM(region 2x2)   ACC=0.4450 NMI=0.1939  (64轮)
+
+  --- seed=2 ---
+    Local-only(view,朴素) ACC=0.3896 NMI=0.2061
+    Local-only(view,融合) ACC=0.4111 NMI=0.1853
+    Local-only(region)    ACC=0.3189 NMI=0.1866
+    OSMAGC 集中式         ACC=0.4570 NMI=0.4133  (65s)
+    OSMAGC 联邦化(view)   ACC=0.4570 NMI=0.4133  通信=516.0 MB
+    Fed-MVKM(region 2x2)   ACC=0.4428 NMI=0.1939  (79轮)
+====================================================================================================
+数据集 MUUFL
+====================================================================================================
+  MUUFL: 325x220 = 71,500 像素 | 2 视图 [HS(64), LiDAR(2)] | 11 类 | 有标注 53,687 (75.1%) | 缺失率 25%/25%
+
+  --- seed=0 ---
+    Local-only(view,朴素) ACC=0.3169 NMI=0.2911
+    Local-only(view,融合) ACC=0.3170 NMI=0.2269
+    Local-only(region)    ACC=0.3267 NMI=0.3339
+    OSMAGC 集中式         ACC=0.4069 NMI=0.3666  (7s)
+    OSMAGC 联邦化(view)   ACC=0.4069 NMI=0.3666  通信=240.0 MB
+    Fed-MVKM(region 2x2)   ACC=0.3609 NMI=0.3494  (30轮)
+
+  --- seed=1 ---
+    Local-only(view,朴素) ACC=0.3231 NMI=0.2918
+    Local-only(view,融合) ACC=0.3056 NMI=0.2402
+    Local-only(region)    ACC=0.3626 NMI=0.3428
+    OSMAGC 集中式         ACC=0.4822 NMI=0.3843  (7s)
+    OSMAGC 联邦化(view)   ACC=0.4822 NMI=0.3843  通信=240.0 MB
+    Fed-MVKM(region 2x2)   ACC=0.3503 NMI=0.3485  (28轮)
+
+  --- seed=2 ---
+    Local-only(view,朴素) ACC=0.3226 NMI=0.2917
+    Local-only(view,融合) ACC=0.3205 NMI=0.1959
+    Local-only(region)    ACC=0.3592 NMI=0.3489
+    OSMAGC 集中式         ACC=0.4818 NMI=0.3843  (7s)
+    OSMAGC 联邦化(view)   ACC=0.4818 NMI=0.3843  通信=240.0 MB
+    Fed-MVKM(region 2x2)   ACC=0.3733 NMI=0.3645  (75轮)
+====================================================================================================
+数据集 Trento
+====================================================================================================
+  Trento: 166x600 = 99,600 像素 | 2 视图 [HS(63), LiDAR(2)] | 6 类 | 有标注 30,214 (30.3%)
+
+  --- seed=0 ---
+    Local-only(view,朴素) ACC=0.6272 NMI=0.5053
+    Local-only(view,融合) ACC=0.5769 NMI=0.4685
+    Local-only(region)    ACC=0.5926 NMI=0.4544
+    OSMAGC 集中式         ACC=0.7507 NMI=0.7225  (12s)
+    OSMAGC 联邦化(view)   ACC=0.7507 NMI=0.7225  通信=182.4 MB
+    Fed-MVKM(region 2x2)   ACC=0.5835 NMI=0.5258  (38轮)
+
+  --- seed=1 ---
+    Local-only(view,朴素) ACC=0.6263 NMI=0.5057
+    Local-only(view,融合) ACC=0.6847 NMI=0.4678
+    Local-only(region)    ACC=0.5926 NMI=0.4544
+    OSMAGC 集中式         ACC=0.7507 NMI=0.7225  (13s)
+    OSMAGC 联邦化(view)   ACC=0.7507 NMI=0.7225  通信=182.4 MB
+    Fed-MVKM(region 2x2)   ACC=0.5834 NMI=0.5257  (38轮)
+
+  --- seed=2 ---
+    Local-only(view,朴素) ACC=0.6437 NMI=0.5244
+    Local-only(view,融合) ACC=0.6862 NMI=0.5282
+    Local-only(region)    ACC=0.5925 NMI=0.4544
+    OSMAGC 集中式         ACC=0.7501 NMI=0.7220  (12s)
+    OSMAGC 联邦化(view)   ACC=0.7501 NMI=0.7220  通信=182.4 MB
+    Fed-MVKM(region 2x2)   ACC=0.5835 NMI=0.5257  (37轮)
+====================================================================================================
+数据集 Salinas
+====================================================================================================
+  Salinas: 512x217 = 111,104 像素 | 3 视图 [HS(204), EMP(45), Gabor(90)] | 16 类 | 有标注 54,129 (48.7%)
+
+  --- seed=0 ---
+    Local-only(view,朴素) ACC=0.6444 NMI=0.7502
+    Local-only(view,融合) ACC=0.6680 NMI=0.7685
+    Local-only(region)    ACC=0.5613 NMI=0.7039
+    OSMAGC 集中式         ACC=0.5654 NMI=0.6628  (53s)
+    OSMAGC 联邦化(view)   ACC=0.5654 NMI=0.6628  通信=813.8 MB
+    Fed-MVKM(region 2x2)   ACC=0.6823 NMI=0.7854  (53轮)
+
+  --- seed=1 ---
+    Local-only(view,朴素) ACC=0.6591 NMI=0.7604
+    Local-only(view,融合) ACC=0.6919 NMI=0.7941
+    Local-only(region)    ACC=0.6100 NMI=0.7001
+    OSMAGC 集中式         ACC=0.5792 NMI=0.6598  (91s)
+    OSMAGC 联邦化(view)   ACC=0.5792 NMI=0.6598  通信=813.8 MB
+    Fed-MVKM(region 2x2)   ACC=0.6154 NMI=0.7483  (51轮)
+
+  --- seed=2 ---
+    Local-only(view,朴素) ACC=0.6331 NMI=0.7461
+    Local-only(view,融合) ACC=0.6633 NMI=0.7646
+    Local-only(region)    ACC=0.6198 NMI=0.7215
+    OSMAGC 集中式         ACC=0.5678 NMI=0.6596  (138s)
+    OSMAGC 联邦化(view)   ACC=0.5678 NMI=0.6596  通信=813.8 MB
+    Fed-MVKM(region 2x2)   ACC=0.6060 NMI=0.7093  (21轮)
+
+
+====================================================================================================
+汇总（3 个种子，均值 ± 标准差）
+====================================================================================================
+
+--- ACC ---
+  方法                                      Augsburg             MUUFL            Trento           Salinas
+  ------------------------------------------------------------------------------------------------------
+  OSMAGC (central, upper bound)      0.4557±0.0016     0.4570±0.0354     0.7505±0.0002     0.5708±0.0060
+  OSMAGC (federated, view)           0.4557±0.0016     0.4570±0.0354     0.7505±0.0002     0.5708±0.0060
+  Fed-MVKM (region)                  0.4756±0.0449     0.3615±0.0094     0.5834±0.0000     0.6346±0.0340
+  Local-only (view, 不融合)             0.3852±0.0065     0.3209±0.0028     0.6324±0.0080     0.6456±0.0107
+  Local-only (view, 融合)              0.4220±0.0256     0.3144±0.0063     0.6493±0.0512     0.6744±0.0125
+  Local-only (region)                0.3100±0.0231     0.3495±0.0162     0.5926±0.0000     0.5971±0.0256
+
+--- NMI ---
+  方法                                      Augsburg             MUUFL            Trento           Salinas
+  ------------------------------------------------------------------------------------------------------
+  OSMAGC (central, upper bound)      0.4125±0.0006     0.3784±0.0084     0.7223±0.0002     0.6607±0.0015
+  OSMAGC (federated, view)           0.4125±0.0006     0.3784±0.0084     0.7223±0.0002     0.6607±0.0015
+  Fed-MVKM (region)                  0.2058±0.0168     0.3541±0.0073     0.5257±0.0001     0.7477±0.0311
+  Local-only (view, 不融合)             0.1978±0.0117     0.2915±0.0003     0.5118±0.0089     0.7523±0.0060
+  Local-only (view, 融合)              0.1743±0.0106     0.2210±0.0186     0.4881±0.0283     0.7757±0.0131
+  Local-only (region)                0.1744±0.0301     0.3418±0.0062     0.4544±0.0000     0.7085±0.0093
+
+--- ARI ---
+  方法                                      Augsburg             MUUFL            Trento           Salinas
+  ------------------------------------------------------------------------------------------------------
+  OSMAGC (central, upper bound)      0.2735±0.0005     0.2974±0.0536     0.6669±0.0002     0.4493±0.0027
+  OSMAGC (federated, view)           0.2735±0.0005     0.2974±0.0536     0.6669±0.0002     0.4493±0.0027
+  Fed-MVKM (region)                  0.1436±0.0137     0.1733±0.0059     0.4710±0.0001     0.5444±0.0417
+  Local-only (view, 不融合)             0.1260±0.0183     0.1181±0.0025     0.4151±0.0028     0.5463±0.0083
+  Local-only (view, 融合)              0.1138±0.0026     0.0842±0.0098     0.4086±0.0714     0.6023±0.0212
+  Local-only (region)                0.0956±0.0234     0.1666±0.0087     0.2967±0.0000     0.4627±0.0205
+
+--- Purity ---
+  方法                                      Augsburg             MUUFL            Trento           Salinas
+  ------------------------------------------------------------------------------------------------------
+  OSMAGC (central, upper bound)      0.6847±0.0022     0.6183±0.0030     0.7730±0.0001     0.6266±0.0045
+  OSMAGC (federated, view)           0.6847±0.0022     0.6183±0.0030     0.7730±0.0001     0.6266±0.0045
+  Fed-MVKM (region)                  0.5435±0.0107     0.6128±0.0064     0.7054±0.0001     0.6541±0.0339
+  Local-only (view, 不融合)             0.5332±0.0135     0.5589±0.0018     0.6936±0.0107     0.6701±0.0099
+  Local-only (view, 融合)              0.5492±0.0181     0.5401±0.0072     0.6921±0.0099     0.6829±0.0127
+  Local-only (region)                0.5159±0.0136     0.6096±0.0019     0.6357±0.0000     0.6469±0.0143
+
+--- 无法运行的组合 ---
+  （无）
+
+--- 说明 ---
+  · OSMAGC 联邦化与集中式【逐元素相同】，此处两者的逐种子差异仅来自 k-means 随机初始化
+  · Fed-MVKM 是水平联邦，视图划分下不适用（未列入，属方法设定所限）
+  · 全部数字由 common/metrics.py 统一计算，未采信任何方法自报值
+====================================================================================================
