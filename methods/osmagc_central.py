@@ -65,7 +65,13 @@ DEFAULT_PARAMS: dict[str, OSMAGCParams] = {
     # （唯一有官方默认值的一组），后续可按本平台的扫描细化。
     # ⚠️ 约束：initz_k=c 要求 Mv >= c+1。
     "Trento":   OSMAGCParams(num_pixel=(100, 100),      lam=1e-3, gamma=1e-3),   # c=6
-    "Salinas":  OSMAGCParams(num_pixel=(200, 200, 200), lam=1e-3, gamma=1e-3),   # c=16
+    # Salinas：2026-10-07 本平台实测调参结果（见 results/tuning_osmagc_Salinas.json）。
+    # 5×7 的 λ×γ 网格 + 5 组超像素扫描，Stage C 用 n_init=10 复核。
+    #   最优 sp=[200,200,200] λ=1 γ=1e-2：ACC=0.6253（复核值）
+    #   旧基线 sp=[200,200,200] λ=1e-3 γ=1e-3：ACC=0.5611 → 提升 +0.0642
+    # ⚠️ 注意最优 γ 比论文默认的 1e-3 大了 10 倍、λ 大了 1000 倍——不调参会白送 6 个点。
+    # 协议指纹：BLAS 线程 4、COL_CHUNK 25000、复核 n_init=10。换任一项数字都会变。
+    "Salinas":  OSMAGCParams(num_pixel=(200, 200, 200), lam=1.0,  gamma=1e-2),   # c=16
 }
 
 

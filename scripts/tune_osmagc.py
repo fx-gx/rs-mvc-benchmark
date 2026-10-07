@@ -267,8 +267,6 @@ def main() -> int:
     all_res = [r for r in (res_a + res_b + res_c) if r["status"] == "ok"]
     # 最终值以复核（stage C）为准，没有复核则退回扫描值
     all_res.sort(key=lambda r: (r.get("stage") != "C", -r["ACC"]))
-    all_res = [r for r in (res_a + res_b) if r["status"] == "ok"]
-    all_res.sort(key=lambda r: -r["ACC"])
     out = RES / f"tuning_osmagc_{ds.name}.json"
     out.write_text(json.dumps({
         "dataset": ds.name, "seed": args.seed,
