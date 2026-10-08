@@ -166,10 +166,13 @@ def main() -> int:
                 continue
             prev.append(r)
             if r.get("status") == "ok":
-                # col_chunk 必须进 key：换个分块大小结果就变（实测 ACC 差 0.5 点），
-                # 不带上它会把"用别的协议算出来的记录"当成已完成而错误跳过。
+                # col_chunk 和 n_init 都必须进 key：两者都会改变结果。
+                # - 换 col_chunk：ACC 差 0.5 点（实测）
+                # - 换 n_init：不只是数值变，**配置之间的排名都会翻**（实测：
+                #   Salinas 扫描第 8 名在 n_init=10 下成了冠军，扫描冠军掉到第 3）
+                # 不带上它们，会把"用别的协议算出来的记录"当成已完成而错误跳过。
                 done_keys.add((r["lam"], r["gamma"], tuple(r["num_pixel"]),
-                               r.get("stage"), r.get("col_chunk")))
+                               r.get("stage"), r.get("col_chunk"), r.get("n_init")))
         print(f"\n[断点续跑] journal 已有 {len(prev)} 条，其中成功 {len(done_keys)} 条将被跳过")
 
     # ---------------- Stage A：λ × γ ----------------
@@ -180,7 +183,7 @@ def main() -> int:
     ]
     tasks = [t for t in all_a
              if (t["lam"], t["gamma"], tuple(t["num_pixel"]), "A",
-                 int(COL_CHUNK)) not in done_keys]
+                 int(COL_CHUNK), args.n_init) not in done_keys]
     for t in tasks:
         t["n_init"] = args.n_init
     est = len(tasks) * (55 + 9 * args.n_init) / 60
