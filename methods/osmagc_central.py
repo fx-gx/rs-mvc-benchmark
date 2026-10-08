@@ -56,8 +56,14 @@ class OSMAGCParams:
 
 
 DEFAULT_PARAMS: dict[str, OSMAGCParams] = {
-    # λ/γ 取自 OSMAGC 项目实测最优（`scripts/run_phase_a.py: BEST_LG`）
-    "MUUFL":    OSMAGCParams(num_pixel=(50, 100),       lam=1.0,  gamma=1.0),
+    # MUUFL：2026-10-08 本平台实测（results/tuning_osmagc_MUUFL.json + reselect_topk.json）
+    #   原官方值 λ=1 γ=1（来自 OSMAGC 项目 run_phase_a.py: BEST_LG）
+    #   ⚠️ 扫描阶段（n_init=3）选的冠军是 λ=1 γ=0.1（0.4193），
+    #      但它在正式协议 n_init=10 下只有 0.3994，**反而不如官方值**。
+    #      把扫描前 8 名全部拉回 n_init=10 重排后，真冠军是 λ=1 γ=10（0.4146）。
+    #   → 教训：n_init=3 的排名不可信，必须整表复核，只复核冠军防不住排名翻转。
+    #   协议指纹：BLAS 线程 4、COL_CHUNK 25000、n_init=10。
+    "MUUFL":    OSMAGCParams(num_pixel=(50, 100),       lam=1.0,  gamma=10.0),
     # Augsburg：2026-10-07 本平台实测调参结果（results/tuning_osmagc_Augsburg.json）。
     # 5×7 的 λ×γ 网格 + 4 组超像素扫描，Stage C 用 n_init=10 复核。
     #   最优 sp=[200,200,200] λ=1 γ=10：ACC=0.5021 NMI=0.4250 ARI=0.3132 Purity=0.7022
@@ -72,7 +78,11 @@ DEFAULT_PARAMS: dict[str, OSMAGCParams] = {
     # 按论文 4.1 的超像素范围 100~300 取中位起步，λ/γ 取官方代码里 MUUFL 那组
     # （唯一有官方默认值的一组），后续可按本平台的扫描细化。
     # ⚠️ 约束：initz_k=c 要求 Mv >= c+1。
-    "Trento":   OSMAGCParams(num_pixel=(100, 100),      lam=1e-3, gamma=1e-3),   # c=6
+    # Trento：2026-10-08 本平台实测（results/tuning_osmagc_Trento.json）
+    #   最优 sp=[100,100] λ=1 γ=100 → ACC=0.9158 NMI=0.8584 ARI=0.9147 Purity=0.9158
+    #   原起点 λ=γ=1e-3 → ACC=0.7506，提升 +0.1652（本平台四个数据集里最大的一次）
+    #   扫描前 8 名在 n_init=10 下重排后冠军不变，排名基本稳定。
+    "Trento":   OSMAGCParams(num_pixel=(100, 100),      lam=1.0,  gamma=100.0),   # c=6
     # Salinas：2026-10-07 本平台实测调参结果（见 results/tuning_osmagc_Salinas.json）。
     # 5×7 的 λ×γ 网格 + 5 组超像素扫描，Stage C 用 n_init=10 复核。
     #   最优 sp=[200,200,200] λ=1 γ=1e-2：ACC=0.6253（复核值）
