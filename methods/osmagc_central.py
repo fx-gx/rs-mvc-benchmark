@@ -56,40 +56,44 @@ class OSMAGCParams:
 
 
 DEFAULT_PARAMS: dict[str, OSMAGCParams] = {
-    # MUUFL：2026-10-08 本平台实测（results/tuning_osmagc_MUUFL.json + reselect_topk.json）
-    #   原官方值 λ=1 γ=1（来自 OSMAGC 项目 run_phase_a.py: BEST_LG）
-    #   ⚠️ 扫描阶段（n_init=3）选的冠军是 λ=1 γ=0.1（0.4193），
-    #      但它在正式协议 n_init=10 下只有 0.3994，**反而不如官方值**。
-    #      把扫描前 8 名全部拉回 n_init=10 重排后，真冠军是 λ=1 γ=10（0.4146）。
-    #   → 教训：n_init=3 的排名不可信，必须整表复核，只复核冠军防不住排名翻转。
-    #   协议指纹：BLAS 线程 4、COL_CHUNK 25000、n_init=10。
+    # ─────────────────────────────────────────────────────────────────────────
+    # 以下四个数据集的超参均为本平台实测调参结果，协议指纹**必须保持一致**否则
+    # 数字会变（不是"近似等价"，是实测能差几个点）：
+    #     BLAS 线程 4（common/threads.py 全局钉死）
+    #     COL_CHUNK = 25_000（OSMAGC/osmagc/core/updates.py）
+    #     n_init = 10（正式读出协议，扫 Grid 本身就在 10 下跑的）
+    # 原始记录：results/tuning_journal_*.jsonl；汇总：results/tuning_osmagc_*.json
+    # ─────────────────────────────────────────────────────────────────────────
+
+    # MUUFL：原官方值 λ=1 γ=1（OSMAGC 项目 run_phase_a.py: BEST_LG），提升 +0.0077
+    # ⚠️ 扫描阶段（n_init=3）选的冠军 λ=1 γ=0.1 在正式协议下只有 0.3994，
+    #    **反不如官方值 0.4069**；整张网格在 n_init=10 下重扫才选出 γ=10。
     "MUUFL":    OSMAGCParams(num_pixel=(50, 100),       lam=1.0,  gamma=10.0),
-    # Augsburg：2026-10-07 本平台实测调参结果（results/tuning_osmagc_Augsburg.json）。
-    # 5×7 的 λ×γ 网格 + 4 组超像素扫描，Stage C 用 n_init=10 复核。
-    #   最优 sp=[200,200,200] λ=1 γ=10：ACC=0.5021 NMI=0.4250 ARI=0.3132 Purity=0.7022
-    #   原论文默认 λ=1e-3 γ=1e-2：ACC=0.4789 → 提升 +0.0232
-    # ⚠️ 注意：Augsburg 是 OSMAGC 论文自己的主数据集、γ=1e-2 是它唯一的官方默认值，
-    # 但**在这上面照样能调出 2.3 个点** —— "默认超参只对原论文数据集有效"这一结论
-    # 在核心数据集上也成立，不是 Salinas 的特例。
-    # 协议指纹：BLAS 线程 4、COL_CHUNK 25000、复核 n_init=10。
+
+    # Augsburg：原论文默认 λ=1e-3 γ=1e-2 → 提升 +0.0486
+    # ⚠️ 这是 OSMAGC 论文自己的主数据集、γ=1e-2 是它**唯一的官方默认值**，
+    #    照样能调出 4.9 个点 → "默认超参只对原论文数据集有效"不是 Salinas 的特例。
+    # ⚠️ 指标特征：ACC=0.5021 / Purity=0.7022 但 **ARI 仅 0.3132**（Purity 高、ARI 低
+    #    = 典型簇规模失配）。方法对比时别只看 ACC。
+    # ⚠️ λ=10 那行的最优 γ 落在网格最大值 1000 且仍在上升 → **边界没探到头**，待扩网格。
     "Augsburg": OSMAGCParams(num_pixel=(200, 200, 200), lam=1.0,  gamma=10.0),
-    "Berlin":   OSMAGCParams(num_pixel=(100, 100),      lam=1e-3, gamma=10.0),
-    # Trento / Salinas 不是 OSMAGC 论文的数据集，没有官方最优值。
-    # 按论文 4.1 的超像素范围 100~300 取中位起步，λ/γ 取官方代码里 MUUFL 那组
-    # （唯一有官方默认值的一组），后续可按本平台的扫描细化。
-    # ⚠️ 约束：initz_k=c 要求 Mv >= c+1。
-    # Trento：2026-10-08 本平台实测（results/tuning_osmagc_Trento.json）
-    #   最优 sp=[100,100] λ=1 γ=100 → ACC=0.9158 NMI=0.8584 ARI=0.9147 Purity=0.9158
-    #   原起点 λ=γ=1e-3 → ACC=0.7506，提升 +0.1652（本平台四个数据集里最大的一次）
-    #   扫描前 8 名在 n_init=10 下重排后冠军不变，排名基本稳定。
+
+    "Berlin":   OSMAGCParams(num_pixel=(100, 100),      lam=1e-3, gamma=10.0),  # 未接入平台
+
+    # Trento：无官方值，原起点 λ=γ=1e-3 → 提升 +0.1652（四个数据集里最大）
+    # 扫描前 8 名在 n_init=10 下重排后冠军不变，是四个里排名最稳定的一个。
     "Trento":   OSMAGCParams(num_pixel=(100, 100),      lam=1.0,  gamma=100.0),   # c=6
-    # Salinas：2026-10-07 本平台实测调参结果（见 results/tuning_osmagc_Salinas.json）。
-    # 5×7 的 λ×γ 网格 + 5 组超像素扫描，Stage C 用 n_init=10 复核。
-    #   最优 sp=[200,200,200] λ=1 γ=1e-2：ACC=0.6253（复核值）
-    #   旧基线 sp=[200,200,200] λ=1e-3 γ=1e-3：ACC=0.5611 → 提升 +0.0642
-    # ⚠️ 注意最优 γ 比论文默认的 1e-3 大了 10 倍、λ 大了 1000 倍——不调参会白送 6 个点。
-    # 协议指纹：BLAS 线程 4、COL_CHUNK 25000、复核 n_init=10。换任一项数字都会变。
-    "Salinas":  OSMAGCParams(num_pixel=(200, 200, 200), lam=1.0,  gamma=1e-2),   # c=16
+
+    # Salinas：原起点 λ=γ=1e-3 → 提升 +0.0868
+    # ⚠️ 最优 γ 比论文默认的 1e-3 大 1000 倍、λ 大 1000 倍。
+    # ⚠️ 超像素数从默认 [200,200,200] 换到 **[150,150,150] 又涨 2.1 个点**——
+    #    这个配置在扫描排名里很靠后，只有扫全网格才捞得到。
+    "Salinas":  OSMAGCParams(num_pixel=(150, 150, 150), lam=1.0,  gamma=1.0),   # c=16
+
+    # ⚠️ 约束：initz_k=c 要求 Mv >= c+1（Salinas c=16，故 Mv 至少 17）。
+    # ⭐ 跨数据集结论：**λ=1 在四个数据集上都是最优 λ**，但最优 γ 跨两个数量级
+    #    （Salinas 1 / Augsburg 10 / MUUFL 10 / Trento 100）→ λ 是方法的内禀尺度、
+    #    可迁移；γ 依赖数据的空间结构、必须逐数据集调。
 }
 
 
