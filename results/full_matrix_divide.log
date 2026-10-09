@@ -1,0 +1,72 @@
+====================================================================================================
+数据集 Salinas
+====================================================================================================
+  Salinas: 512x217 = 111,104 像素 | 3 视图 [HS(204), EMP(45), Gabor(90)] | 16 类 | 有标注 54,129 (48.7%)
+
+  --- seed=2 ---
+    Local-only(view,朴素) ACC=0.6330 NMI=0.7462
+    Local-only(view,融合) ACC=0.6636 NMI=0.7649
+    Local-only(region)    ACC=0.6198 NMI=0.7215
+    DIVIDE                ACC=0.6059 NMI=0.7638  (14.7min)
+
+
+====================================================================================================
+汇总（1 个种子，均值 ± 标准差）
+====================================================================================================
+
+--- ACC ---
+  方法                                       Salinas
+  ------------------------------------------------
+  OSMAGC (central, upper bound)                N/A
+  OSMAGC (federated, view)                     N/A
+  AMKSC                                        N/A
+  DIVIDE                             0.6059±0.0000
+  Fed-MVKM (region)                            N/A
+  Local-only (view, 不融合)             0.6330±0.0000
+  Local-only (view, 融合)              0.6636±0.0000
+  Local-only (region)                0.6198±0.0000
+
+--- NMI ---
+  方法                                       Salinas
+  ------------------------------------------------
+  OSMAGC (central, upper bound)                N/A
+  OSMAGC (federated, view)                     N/A
+  AMKSC                                        N/A
+  DIVIDE                             0.7638±0.0000
+  Fed-MVKM (region)                            N/A
+  Local-only (view, 不融合)             0.7462±0.0000
+  Local-only (view, 融合)              0.7649±0.0000
+  Local-only (region)                0.7215±0.0000
+
+--- ARI ---
+  方法                                       Salinas
+  ------------------------------------------------
+  OSMAGC (central, upper bound)                N/A
+  OSMAGC (federated, view)                     N/A
+  AMKSC                                        N/A
+  DIVIDE                             0.5073±0.0000
+  Fed-MVKM (region)                            N/A
+  Local-only (view, 不融合)             0.5389±0.0000
+  Local-only (view, 融合)              0.5848±0.0000
+  Local-only (region)                0.4891±0.0000
+
+--- Purity ---
+  方法                                       Salinas
+  ------------------------------------------------
+  OSMAGC (central, upper bound)                N/A
+  OSMAGC (federated, view)                     N/A
+  AMKSC                                        N/A
+  DIVIDE                             0.7060±0.0000
+  Fed-MVKM (region)                            N/A
+  Local-only (view, 不融合)             0.6589±0.0000
+  Local-only (view, 融合)              0.6739±0.0000
+  Local-only (region)                0.6635±0.0000
+
+--- 无法运行的组合 ---
+  （无）
+
+--- 说明 ---
+  · OSMAGC 联邦化与集中式【逐元素相同】，此处两者的逐种子差异仅来自 k-means 随机初始化
+  · Fed-MVKM 是水平联邦，视图划分下不适用（未列入，属方法设定所限）
+  · 全部数字由 common/metrics.py 统一计算，未采信任何方法自报值
+====================================================================================================
