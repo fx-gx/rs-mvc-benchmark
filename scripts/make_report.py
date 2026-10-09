@@ -36,6 +36,7 @@ METRICS = ("ACC", "NMI", "ARI", "Purity")
 METHOD_ORDER = [
     "OSMAGC (central, upper bound)",
     "OSMAGC (federated, view)",
+    "AMKSC",
     "Fed-MVKM (region)",
     "Fed-MVKM",
     "Local-only (view, 不融合)",
@@ -47,6 +48,7 @@ METHOD_ORDER = [
 METHOD_ROLE = {
     "OSMAGC (central, upper bound)": "遥感专用 · 不联邦 · **上界**",
     "OSMAGC (federated, view)": "遥感专用 · 联邦化 · baseline",
+    "AMKSC": "遥感专用 · 不联邦 · **第二个遥感方法**",
     "Fed-MVKM (region)": "通用联邦 · 水平联邦（客户端=样本子集）",
     "Fed-MVKM": "通用联邦 · 水平联邦",
     "Local-only (view, 不融合)": "下界 · 各客户端独立评分取平均",
@@ -58,6 +60,7 @@ METHOD_ROLE = {
 METHOD_SETTING = {
     "OSMAGC (central, upper bound)": "无需划分（所有视图、所有像素一起跑）",
     "OSMAGC (federated, view)": "视图划分（客户端=模态）",
+    "AMKSC": "无需划分（逐像素空间块，不联邦）",
     "Fed-MVKM (region)": "区域划分（客户端=地理区块）",
     "Fed-MVKM": "区域划分（客户端=地理区块）",
     "Local-only (view, 不融合)": "视图划分（客户端=模态）",
@@ -117,7 +120,9 @@ def aggregate(runs: list[dict]):
         key = (r["dataset"], r["method"], r["partition"])
         if r.get("status") == "ok":
             buckets[key].append(r)
-        elif r.get("status") in ("error", "skip"):
+        elif r.get("status") in ("error", "skip", "na"):
+            # "na" = 方法在该数据结构/规模下**不可运行**（不是跑挂了）。
+            # 例：Fed-MVKM 在视图划分下、AMKSC 在高光谱高维数据上。
             errors.setdefault(key, r.get("note", ""))
 
     agg = {}
@@ -337,6 +342,11 @@ def main() -> int:
     W("- **所有通用联邦 MVC 都不处理「视图内像素缺失」** —— 它们只处理整视图缺失；"
       "像素级缺失目前只有集中式的 OSMAGC 支持")
     W("- **OSMAGC 联邦化在随机样本划分下不可运行** —— 其空间正则需要连通的 `(H,W)` 子栅格")
+    W("- **AMKSC 在高光谱高维数据上不可运行** —— 它给每个像素取 9×9 邻域块，"
+      "特征矩阵 = 像素数 × (81 × 波段数) × 4B。Augsburg（180 波段）要 9.65 GB、"
+      "Salinas（339 波段）要 12.20 GB，超出本机内存（实测 Augsburg 跑到 8.26 GB 时"
+      "系统可用内存仅剩 0.41 GB）。对比：OSMAGC 用**区域级**空间建模（超像素锚点），"
+      "内存几乎不增；AMKSC 用**像素级**空间块，效果好但内存 ×81")
     W("")
 
     # ---------------- 八、已知问题 ----------------
