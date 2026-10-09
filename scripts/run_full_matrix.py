@@ -43,6 +43,7 @@ from common.protocol import (                                 # noqa: E402
     DEFAULT_LOG, RunResult, append_result,
 )
 from methods.amksc import amksc_applicable, run_amksc         # noqa: E402
+from methods.divide import divide_applicable, run_divide      # noqa: E402
 from methods.fed_mvkm import run_fed_mvkm                     # noqa: E402
 from methods.local_only import (                              # noqa: E402
     run_region_local_only, run_view_local_only,
@@ -63,6 +64,7 @@ def main() -> int:
     ap.add_argument("--skip-osmagc", action="store_true")
     ap.add_argument("--skip-fedmvkm", action="store_true")
     ap.add_argument("--skip-amksc", action="store_true")
+    ap.add_argument("--skip-divide", action="store_true")
     ap.add_argument("--log", default=str(DEFAULT_LOG))
     args = ap.parse_args()
 
@@ -229,6 +231,28 @@ def main() -> int:
                         record(ds, "AMKSC", "none", "central", seed,
                                None, 0, None, "error", f"{type(exc).__name__}: {exc}")
 
+            # ---- 7. DIVIDE（通用 · 对比学习，AAAI'24）----
+            if not args.skip_divide:
+                ok_d, why_d = divide_applicable(ds)
+                if not ok_d:
+                    print(f"    DIVIDE 不适用: {why_d}")
+                    record(ds, "DIVIDE", "none", "central", seed,
+                           None, 0, None, "na", why_d)
+                else:
+                    try:
+                        t0d = _t.time()
+                        lab, det = run_divide(ds, seed=seed)
+                        el_d = _t.time() - t0d
+                        m = sc(lab)
+                        print(f"    DIVIDE                ACC={m['ACC']:.4f} "
+                              f"NMI={m['NMI']:.4f}  ({el_d/60:.1f}min)")
+                        record(ds, "DIVIDE", "none", "central", seed, m, el_d,
+                               {k: v for k, v in det.items()})
+                    except Exception as exc:                        # noqa: BLE001
+                        print(f"    DIVIDE 失败: {type(exc).__name__}: {exc}")
+                        record(ds, "DIVIDE", "none", "central", seed,
+                               None, 0, None, "error", f"{type(exc).__name__}: {exc}")
+
     # ---------------------------------------------------------------- 汇总报表
     print("\n")
     print("=" * 100)
@@ -238,6 +262,7 @@ def main() -> int:
         "OSMAGC (central, upper bound)",
         "OSMAGC (federated, view)",
         "AMKSC",
+        "DIVIDE",
         "Fed-MVKM (region)",
         "Local-only (view, 不融合)",
         "Local-only (view, 融合)",
