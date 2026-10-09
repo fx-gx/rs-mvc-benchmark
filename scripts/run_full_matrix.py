@@ -42,6 +42,7 @@ from common.partition import (                                # noqa: E402
 from common.protocol import (                                 # noqa: E402
     DEFAULT_LOG, RunResult, append_result,
 )
+from methods.amksc import amksc_applicable, run_amksc         # noqa: E402
 from methods.fed_mvkm import run_fed_mvkm                     # noqa: E402
 from methods.local_only import (                              # noqa: E402
     run_region_local_only, run_view_local_only,
@@ -61,6 +62,7 @@ def main() -> int:
     ap.add_argument("--grid", default="2x2", help="区域划分的网格，如 2x2")
     ap.add_argument("--skip-osmagc", action="store_true")
     ap.add_argument("--skip-fedmvkm", action="store_true")
+    ap.add_argument("--skip-amksc", action="store_true")
     ap.add_argument("--log", default=str(DEFAULT_LOG))
     args = ap.parse_args()
 
@@ -204,6 +206,29 @@ def main() -> int:
                     record(ds, "Fed-MVKM (region)", pg.shape, pg.mode, seed,
                            None, 0, None, "error", f"{type(exc).__name__}: {exc}")
 
+            # ---- 6. AMKSC（遥感专用 · 逐像素空间块）----
+            if not args.skip_amksc:
+                ok_a, why_a = amksc_applicable(ds)
+                if not ok_a:
+                    # 「不适用」本身即结论，与 Fed-MVKM 在视图划分下不可运行同类
+                    print(f"    AMKSC 不适用: {why_a}")
+                    record(ds, "AMKSC", "none", "central", seed,
+                           None, 0, None, "na", why_a)
+                else:
+                    try:
+                        t0a = _t.time()
+                        lab, det = run_amksc(ds, seed=seed)
+                        el_a = _t.time() - t0a
+                        m = sc(lab)
+                        print(f"    AMKSC                 ACC={m['ACC']:.4f} "
+                              f"NMI={m['NMI']:.4f}  ({el_a:.0f}s, {det['device']})")
+                        record(ds, "AMKSC", "none", "central", seed, m, el_a,
+                               {k: v for k, v in det.items() if k != "mu"})
+                    except Exception as exc:                        # noqa: BLE001
+                        print(f"    AMKSC 失败: {type(exc).__name__}: {exc}")
+                        record(ds, "AMKSC", "none", "central", seed,
+                               None, 0, None, "error", f"{type(exc).__name__}: {exc}")
+
     # ---------------------------------------------------------------- 汇总报表
     print("\n")
     print("=" * 100)
@@ -212,6 +237,7 @@ def main() -> int:
     methods = [
         "OSMAGC (central, upper bound)",
         "OSMAGC (federated, view)",
+        "AMKSC",
         "Fed-MVKM (region)",
         "Local-only (view, 不融合)",
         "Local-only (view, 融合)",

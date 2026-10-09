@@ -52,10 +52,40 @@ DEFAULT_PARAMS: dict[str, AMKSCParams] = {
 }
 
 
-def amksc_applicable(ds) -> tuple[bool, str]:
-    """AMKSC 在这份数据上能不能跑。"""
+# 特征矩阵的可行上限（GB）。
+# 实测标定：Trento 2.10 GB 可跑（74s）；MUUFL 1.48 GB 可跑（峰值 RSS 6.41 GB）；
+# Augsburg 9.65 GB **实测跑不动**（进程到 8.26 GB 时系统可用内存仅剩 0.41 GB，
+# 被保护机制中止）。阈值取 4.0 GB，留一倍安全裕量。
+FEASIBLE_FEATURE_GB = 4.0
+
+
+def feature_bytes(ds, patch_size: int = 9) -> float:
+    """AMKSC 为这份数据要建的特征矩阵大小（GB）。
+
+    = 像素数 × (patch_size² × 各视图波段数之和) × 4 字节
+    这就是它与其他方法的根本差别：**每个像素带一个 patch² 倍膨胀的邻域特征**，
+    而 OSMAGC 用超像素锚点、Fed-MVKM/Local-only 直接用原始波段，都只有 1 倍。
+    """
+    dims = sum(patch_size * patch_size * c.shape[2] for c in ds.cubes)
+    return ds.n_pixels * dims * 4 / 1e9
+
+
+def amksc_applicable(ds, patch_size: int = 9) -> tuple[bool, str]:
+    """AMKSC 在这份数据上能不能跑。
+
+    不适用不是"实验失败"，而是**方法对数据规模的硬依赖**——
+    与 Fed-MVKM 在视图划分下不可运行（要求客户端持有全部视图）属同一类结论。
+    """
     if ds.n_views < 2:
         return False, f"AMKSC 需要至少 2 个视图，{ds.name} 只有 {ds.n_views} 个"
+    gb = feature_bytes(ds, patch_size)
+    if gb > FEASIBLE_FEATURE_GB:
+        dims = sum(patch_size * patch_size * c.shape[2] for c in ds.cubes)
+        return False, (
+            f"像素级空间块内存不可行：{ds.n_pixels:,} 像素 × {dims:,} 维"
+            f"（={patch_size}²×{sum(c.shape[2] for c in ds.cubes)} 波段）"
+            f"× 4B = {gb:.2f} GB > 上限 {FEASIBLE_FEATURE_GB} GB"
+        )
     return True, ""
 
 
