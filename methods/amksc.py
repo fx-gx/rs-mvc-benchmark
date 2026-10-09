@@ -104,6 +104,7 @@ def run_amksc(ds, params: AMKSCParams | None = None, seed: int = 0,
         )
         # xp: (N, ps, ps, B)，N = H*W，**C 序**
         n = xp.shape[0]
+
         x = xp.reshape(n, -1)
         x = StandardScaler().fit_transform(x)          # 与官方 loader 一致
         modality_list.append(x.astype(np.float32))
