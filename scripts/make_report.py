@@ -288,6 +288,12 @@ def main() -> int:
     W("")
     W("## 五、主结果表")
     W("")
+    W("![主结果：四个数据集上的 ACC 对比](figures/chart.png)")
+    W("")
+    W("> 四个面板共用同一横轴量程（自 0 起）。蓝=遥感专用、橙=通用、绿=不协作下界。"
+      "交互版（含悬停数值与深色模式）：`results/figures/accuracy_by_dataset.html`，"
+      "用 `python scripts/make_chart.py` 重生成。")
+    W("")
     W("数值为 **均值±标准差**（多种子）。`—` 表示该组合未运行或不可运行。")
     W("")
 
