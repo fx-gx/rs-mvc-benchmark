@@ -12,3 +12,11 @@ result/*.pdf
 
 # FedRSMVC 的客户端检查点（适配器运行时生成，勿入库）
 save/
+
+# Claude Code 本地设置（含本机绝对路径与权限记录，不应公开）
+.claude/settings.json
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# 逐次运行的散装日志（results/archive/ 里的调参记录是刻意保留的实验档案，不受影响）
+results/*.log
