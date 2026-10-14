@@ -124,8 +124,8 @@ D:\cc\
 
 ## 相关项目
 
-- [`osmagc-repro`](https://github.com/) —— OSMAGC 的 MATLAB→Python 复现（本平台的上界方法来源）
-- [`fedrsmvc-repro`](https://github.com/) —— FedRSMVC 复现（本平台的方法来源）
+- [`osmagc-repro`](https://github.com/fx-gx/osmagc-repro) —— OSMAGC 的 MATLAB→Python 复现（本平台的上界方法来源）
+- [`fedrsmvc-repro`](https://github.com/fx-gx/fedrsmvc-repro) —— FedRSMVC 复现（本平台的方法来源）
 
 ## 许可
 

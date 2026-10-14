@@ -35,6 +35,7 @@ CATEGORIES = [
         ("OSMAGC (central, upper bound)", "OSMAGC 集中式"),
         ("OSMAGC (federated, view)", "OSMAGC 联邦化"),
         ("AMKSC", "AMKSC"),
+        ("FedRSMVC", "FedRSMVC"),
     ]),
     ("通用（非遥感设计）", "#eb6834", "#d95926", [
         ("DIVIDE", "DIVIDE"),
