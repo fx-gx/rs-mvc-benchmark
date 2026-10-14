@@ -2,3 +2,13 @@ __pycache__/
 *.pyc
 .venv/
 *.tmp
+
+# FedRSMVC 用相对路径写的图（适配器不 chdir，会落到这里）
+results/Trento_*.png
+results/Augsburg_*.png
+results/Salinas_*.png
+results/*_log.csv
+result/*.pdf
+
+# FedRSMVC 的客户端检查点（适配器运行时生成，勿入库）
+save/

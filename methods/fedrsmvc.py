@@ -83,6 +83,21 @@ def run_fedrsmvc(ds, params: FedRSMVCParams | None = None, seed: int = 42,
     config["result_path"] = str(FRS_DIR / "results")
     dev = torch.device(device or ("cuda:0" if torch.cuda.is_available() else "cpu"))
 
+    # ⚠️ 必须在这里播种。它的 `set_seed()` 定义在 main.py 且由 main() 调用，
+    # 而本适配器直接构造 FLSimulator、不走 main()，所以原来完全没固定种子——
+    # 实测同配置两个种子给出 0.7166 / 0.5331（差 18 个点）就是这么来的。
+    # 这里内联复刻 main.py:13-21 的 set_seed，不 import main 以免触发其模块级副作用。
+    import os
+    import random
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
     # ---- 探针：拦下 full_metric 收到的**原始**聚类标签（未做 oracle 映射）----
     original_full_metric = fls.full_metric
     captured: dict[str, np.ndarray] = {}
