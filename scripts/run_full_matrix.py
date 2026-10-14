@@ -44,6 +44,7 @@ from common.protocol import (                                 # noqa: E402
 )
 from methods.amksc import amksc_applicable, run_amksc         # noqa: E402
 from methods.divide import divide_applicable, run_divide      # noqa: E402
+from methods.fedrsmvc import fedrsmvc_applicable, run_fedrsmvc  # noqa: E402
 from methods.fed_mvkm import run_fed_mvkm                     # noqa: E402
 from methods.local_only import (                              # noqa: E402
     run_region_local_only, run_view_local_only,
@@ -65,6 +66,7 @@ def main() -> int:
     ap.add_argument("--skip-fedmvkm", action="store_true")
     ap.add_argument("--skip-amksc", action="store_true")
     ap.add_argument("--skip-divide", action="store_true")
+    ap.add_argument("--skip-fedrsmvc", action="store_true")
     ap.add_argument("--log", default=str(DEFAULT_LOG))
     args = ap.parse_args()
 
@@ -253,6 +255,28 @@ def main() -> int:
                         record(ds, "DIVIDE", "none", "central", seed,
                                None, 0, None, "error", f"{type(exc).__name__}: {exc}")
 
+            # ---- 8. FedRSMVC（遥感专用 · 联邦，用户自己的方法）----
+            if not args.skip_fedrsmvc:
+                ok_r, why_r = fedrsmvc_applicable(ds)
+                if not ok_r:
+                    print(f"    FedRSMVC 不适用: {why_r}")
+                    record(ds, "FedRSMVC", pv.shape, pv.mode, seed,
+                           None, 0, None, "na", why_r)
+                else:
+                    try:
+                        t0r = _t.time()
+                        lab, det = run_fedrsmvc(ds, seed=seed)
+                        el_r = _t.time() - t0r
+                        m = sc(lab)
+                        print(f"    FedRSMVC              ACC={m['ACC']:.4f} "
+                              f"NMI={m['NMI']:.4f}  ({el_r/60:.1f}min)")
+                        record(ds, "FedRSMVC", pv.shape, pv.mode, seed, m, el_r,
+                               {k: v for k, v in det.items() if k != "raw_label_source"})
+                    except Exception as exc:                        # noqa: BLE001
+                        print(f"    FedRSMVC 失败: {type(exc).__name__}: {exc}")
+                        record(ds, "FedRSMVC", pv.shape, pv.mode, seed,
+                               None, 0, None, "error", f"{type(exc).__name__}: {exc}")
+
     # ---------------------------------------------------------------- 汇总报表
     print("\n")
     print("=" * 100)
@@ -263,6 +287,7 @@ def main() -> int:
         "OSMAGC (federated, view)",
         "AMKSC",
         "DIVIDE",
+        "FedRSMVC",
         "Fed-MVKM (region)",
         "Local-only (view, 不融合)",
         "Local-only (view, 融合)",

@@ -1,10 +1,8 @@
-# 遥感多视图聚类统一测试平台 · 实验结果报告
-
-> 生成时间：2026-10-13 12:42:11　|　数据源：`runs.jsonl`（97 条原始记录）
+# 遥感多视图聚类统一测试平台 · 实验结果
 
 ## 结论
 
-**1. 通用算法在遥感数据上掉分。** 最强通用（DIVIDE） vs 最强遥感专用（OSMAGC）：
+**1. 通用算法在遥感数据上掉分。**
 
 | 数据集 | DIVIDE | OSMAGC | 差 |
 |---|---|---|---|
@@ -147,32 +145,3 @@
 4. **OSMAGC 超参已逐数据集调优**（`results/tuning_osmagc_*.json`）：四个数据集最优 λ 都是 1，最优 γ 跨两个数量级（1 / 10 / 10 / 100）——λ 可迁移、γ 必须逐数据集调。**论文默认值在四个数据集上全部不是最优**。
 5. **未纳入的**：Berlin（本地未接入）；PMIMC（适配器已写但不适用，见第六节）；ASCR / FPFC / MSSAGF / SIMVC-SA（本机无 MATLAB）；CeFMC（本地无代码）。
 6. **局限**：通用算法仅 2 个样本，不足以支撑「普遍不适应」这类表述。
-
-## 八、如何复现
-
-```bash
-cd D:\cc\算法测试
-
-# 1) 验证指标口径（68 项对拍，应 0 失配）
-python scripts/verify_metrics.py
-
-# 2) 验证数据加载与划分
-python scripts/verify_data.py
-
-# 3) 验证 OSMAGC 联邦化无损
-python scripts/verify_osmagc_federated.py --dataset Augsburg
-
-# 4) 全流程跑批（多数据集 × 多种子）
-python scripts/run_full_matrix.py --datasets Augsburg MUUFL Trento Salinas --seeds 0 1 2
-
-# 5) 生成本报告
-python scripts/make_report.py
-```
-
-环境：Python 3.12 (Anaconda) / numpy 1.26 / scipy 1.13 / sklearn 1.5 / torch 2.5.1+cu124 / RTX 4060 Laptop 8GB
-
-## 附录：原始记录
-
-- `results/runs.jsonl` —— 原始 98 条记录，去重后 97 条（每行一条 JSON，含数据集/方法/划分/种子/四个指标/耗时/协议指纹）
-- `results/full_matrix.log` —— 跑批完整日志
-- `results/kmeans_readout_*.json` —— k-means 读出协议的逐轮明细
